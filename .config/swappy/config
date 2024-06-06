@@ -1,0 +1,11 @@
+[Default]
+save_dir=$HOME/Pictures/Screenshots/Annotated
+save_filename_format=note-%d%m%Y-T%H%M%S.png
+show_panel=true
+line_size=2
+text_size=10
+text_font=cantarell
+paint_mode=brush
+early_exit=false
+fill_shape=false
+custom_color=rgba(105, 47, 248, 1)

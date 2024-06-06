@@ -1,0 +1,18 @@
+[pyprland]
+plugins = ["scratchpads"]
+
+[scratchpads.term]
+animation = "fromTop"
+command = "kitty --class kitty-dropterm"
+class = "kitty-dropterm"
+size = "75% 60%"
+max_size = "1920px 100%"
+margin = 50
+
+[scratchpads.ncmpcpp]
+animation = "fromTop"
+command = "kitty --class scratch_ncmpcpp --title scratch_ncmpcpp ncmpcpp"
+class = "kitty-dropterm"
+size = "30% 20%"
+max_size = "1920px 100%"
+margin = 50

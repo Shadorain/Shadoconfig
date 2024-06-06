@@ -1,0 +1,297 @@
+
+/* -----------------------------------------------------------------------------
+ * Styles
+ * -------------------------------------------------------------------------- */
+
+/* COLORS */
+
+/* Nord */
+@define-color bg transparent;
+@define-color light @white; /* #E3C7FC; */
+@define-color warning #FF4971;
+@define-color critical #B52A5B;
+@define-color disabled #35355E;
+@define-color workspacesfocused #bd93f9;
+@define-color tray @workspacesfocused;
+@define-color white #fff;
+@define-color launcher #CBA6F7;
+@define-color idle @launcher;
+@define-color cpu #7757d9;
+
+/* Reset all styles */
+* {
+    border: none;
+    border-radius: 3px;
+    min-height: 0;
+    margin: 0.2em 0.3em 0.2em 0.3em;
+}
+
+/* The whole bar */
+#waybar {
+    background-color: @bg;
+    color: @light;
+    font-family: "Roboto Mono Medium", "Ubuntu Nerd Font";
+    font-size: 13px;
+}
+
+/* Each module */
+#custom-launcher,
+#workspaces,
+#mpd,
+#cpu,
+#memory,
+#disk,
+#network,
+#tray,
+#pulseaudio,
+#clock {
+    padding-left: 0.6em;
+    padding-right: 0.6em;
+}
+
+
+/* ======================================================================== */
+/* Left Modules                                                             */
+/* ======================================================================== */
+
+#custom-launcher {
+    color: @launcher;
+    font-weight: bold;
+    padding: 5;
+    margin-left: 5;
+    padding-left: 15px;
+    padding-right: 15px;
+    opacity: 1;
+    font-size: 1em;
+}
+
+/* And now modules themselves in their respective order */
+#workspaces button {
+    color: #cba6f7;
+    background: @bg;
+    border-color: @bg;
+    opacity: 0.3;
+    font-weight: bold;
+    padding: 0;
+    font-size: 1em;
+}
+
+#workspaces button.active {
+    padding-right: 5px;
+    padding-left: 5px;
+    color: #ff7ab2;
+    opacity: 1;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.377);
+    /* padding-right: 20px; */
+    /* padding-left: 20px; */
+    /* box-shadow: rgba(0, 0, 0, 0.288) 2 2 5 2px; */
+    /* background: rgb(202,158,230); */
+    /* background: linear-gradient(45deg, rgba(202,158,230,1) 0%, rgba(245,194,231,1) 43%, rgba(180,190,254,1) 80%, rgba(137,180,250,1) 100%); */
+    /* background-size: 300% 300%; */
+    /* animation: gradient 10s ease infinite; */
+}
+
+#workspaces button.focused {
+    padding-right: 5px;
+    padding-left: 5px;
+    color: @workspacesfocused;
+    opacity: 1;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.377);
+}
+
+#workspaces button.hovered {
+    padding-right: 5px;
+    padding-left: 5px;
+    color: #cba6f7;
+    opacity: 1;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.377);
+}
+
+#workspaces button.urgent {
+    padding-right: 5px;
+    padding-left: 5px;
+    border-color: @critical;
+    color: @warning;
+    opacity: 1;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.377);
+}
+
+#idle_inhibitor {
+    color: @idle;
+    font-weight: bold;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+@keyframes gradient {
+	0% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0% 50%;
+	}
+}
+
+
+/* ======================================================================== */
+/* Center Modules                                                           */
+/* ======================================================================== */
+
+#mpd.playing,
+#mpd.paused {
+    /* color: #cba6f7; */
+    color: #dccafc;
+    margin-left: 0;
+    border-top: 10px solid;
+    border-radius: 50%;
+    border-image-source: linear-gradient(to left, rgba(194,208,245,1) 0%, rgba(166,172,247,1) 15%, rgba(245,194,231,1) 100%);
+    border-image-slice: 1;
+    border-width: 2px;
+}
+
+#custom-play_pause,
+#custom-prev,
+#custom-next {
+    color: #dccafc;
+    opacity: 0.9;
+    padding: 0;
+    margin: 2 0 0 0;
+    border-top: 10px solid rgba(245,194,231,1);
+    border-radius: 0;
+    border-width: 2px;
+}
+#custom-prev {
+    padding-left: 8;
+}
+#custom-next {
+    padding-right: 5;
+}
+
+
+/* ======================================================================== */
+/* Right Modules                                                            */
+/* ======================================================================== */
+
+@keyframes blink-warning {
+    70% {
+        color: @light;
+    }
+    to {
+        color: @light;
+        background-color: @warning;
+    }
+}
+
+@keyframes blink-critical {
+    70% {
+      color: @light;
+    }
+    to {
+        color: @light;
+        background-color: @critical;
+    }
+}
+
+/* Each module that should blink */
+#memory {
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+}
+
+/* Each critical module */
+#memory.critical,
+#cpu.critical {
+    color: @critical;
+}
+
+/* Each critical that should blink */
+#memory.critical {
+    animation-name: blink-critical;
+    animation-duration: 2s;
+}
+
+/* Each warning */
+#network.disconnected,
+#memory.warning,
+#cpu.warning {
+    background: @warning;
+    color: @white;
+}
+
+#tray {
+    background: rgb(97,144,171);
+    background: linear-gradient(45deg, rgba(97,144,171,1) 0%, rgba(90,152,217,1) 41%, rgba(180,236,254,1) 100%);
+}
+
+#tray > .passive {
+    -gtk-icon-effect: dim;
+}
+
+#tray > .needs-attention {
+    -gtk-icon-effect: highlight;
+    background-color: @warning;
+}
+
+#network.disabled {
+    color: @white;
+    background-color: @disabled;
+}
+
+#network.disconnected {
+    background: rgb(243,139,168);
+    background: linear-gradient(45deg, rgba(243,139,168,1) 0%, rgba(250,179,135,1) 100%);
+    padding-right: 14px;
+    padding-left: 15px
+}
+
+#network.linked, #network.wifi{
+     background: rgb(180,190,254);
+background: linear-gradient(45deg, rgba(180,190,254,1) 0%, rgba(169,190,222,1) 55%, rgba(196,194,245,1) 100%);
+    padding-right: 14px;
+    padding-left: 15px
+}
+
+#cpu {
+    background: rgb(180,236,254);
+    background: linear-gradient(45deg, rgba(180,236,254,1) 0%, rgba(155,187,236,1) 55%, rgba(180,190,254,1) 100%);
+    background-size: 300% 300%;
+    /* animation: gradient 20s ease infinite; */
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.377);
+    padding-right: 14px;
+    padding-left: 15px
+}
+
+#pulseaudio { /* Unsused but kept for those who needs it */
+    background: rgb(194,208,245);
+    background: linear-gradient(45deg, rgba(194,208,245,1) 0%, rgba(166,172,247,1) 34%, rgba(245,194,231,1) 100%);
+    background-size: 300% 300%;
+    /* animation: gradient 20s ease infinite; */
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.377);
+    padding-right: 15px;
+    padding-left: 15px
+}
+#pulseaudio.muted {
+    background: rgb(194,208,245);
+    background: linear-gradient(45deg, rgba(194,208,245,1) 0%, rgba(166,172,247,1) 34%, rgba(245,194,231,1) 100%);
+    background-size: 300% 300%;
+    animation: gradient 20s ease infinite;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.377);
+    color: @disabled;
+    padding-right: 15px;
+    padding-left: 15px
+}
+
+#clock {
+    background: rgb(245,194,231);
+    background: linear-gradient(45deg, rgba(245,194,231,1) 0%, rgba(203,166,247,1) 64%, rgba(202,158,230,1) 100%);
+    background-size: 300% 300%;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.377);
+    /* animation: gradient 20s ease infinite; */
+    font-weight: bold;
+    padding-right: 21px;
+    padding-left: 22px
+}
