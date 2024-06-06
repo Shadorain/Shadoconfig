@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+FILENAME="$HOME/Videos/Recordings/recording-$(date +"%d%m%Y-T%H%M%S").mp4"
+AUDIO_ARGS=""
+
+CMD="wf-recorder"
+
+if [[ ! -z "$1" ]]; then
+    AUDIO_ARGS="--audio"
+fi
+
+# Check if wf-recorder is running and kill it
+if pidof ${CMD} &> /dev/null; then
+    kill -SIGINT $(pidof $CMD)
+    notify-send "Screen recording stopped!"
+    exit
+fi
+
+if [[ -z "$AUDIO_ARGS" ]]; then
+    notify-send "Screen recording started..."
+else
+    notify-send "Screen & audio recording started..."
+fi
+${CMD} -g "$(slurp)" "${AUDIO_ARGS}" -f ${FILENAME}
