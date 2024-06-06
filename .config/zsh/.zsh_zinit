@@ -1,0 +1,77 @@
+# =========================================================================== #
+# Shadoconfig - Zinit                                                         #
+# =========================================================================== #
+
+# == Zinit == #
+# Set the directory where we want to store zinit and plugins.
+ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
+
+# Download Zinit if it doesn't exist.
+if [ ! -d "${ZINIT_HOME}" ]; then
+    mkdir -p "$(dirname $ZINIT_HOME)"
+    git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
+fi
+
+source "${ZINIT_HOME}/zinit.zsh" # Source / Load Zinit
+
+
+# == Plugins == #
+zinit wait lucid light-mode for \
+  atinit"zicompinit; zicdreplay" \
+      zdharma-continuum/fast-syntax-highlighting \
+      OMZP::colored-man-pages \
+  atload"_zsh_autosuggest_start" \
+      zsh-users/zsh-autosuggestions \
+  blockf atpull'zinit creinstall -q .' \
+      zsh-users/zsh-completions \
+      OMZP::extract
+
+zinit wait"1" lucid light-mode for \
+    zdharma-continuum/history-search-multi-word \
+    softmoth/zsh-vim-mode \
+    Aloxaf/fzf-tab \
+    micha/resty
+
+zinit ice nocompile:! pick:c.zsh atpull:%atclone atclone:'dircolors -b LS_COLORS > c.zsh'
+zinit light trapd00r/LS_COLORS
+
+## -- Config -- ##
+### --- Completions --- ###
+zstyle ':completion:*' accept-exact '*(N)'
+zstyle ':completion:*' use-cache on
+zstyle ':completion:*' cache-path "${ZDOTDIR}/cache"
+
+### --- FZF Completions --- ###
+zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+(( $+commands[exa] )) && zstyle ':fzf-tab:complete:cd:*' fzf-preview 'exa -1 --color=always --icons $realpath'
+zstyle ':fzf-tab:*' continuous-trigger '/'
+
+# -- Loading -- ##
+
+## -- Keybinds -- ##
+bindkey '^j' history-search-forward
+bindkey '^k' history-search-backward
+bindkey  "^[[H"   beginning-of-line
+bindkey  "^[[F"   end-of-line
+bindkey  "^[[3~"  delete-char
+
+
+# == Snippets == #
+setopt promptsubst
+
+zinit wait"2" lucid light-mode for \
+    OMZP::jsontools \
+    OMZP::history \
+    OMZP::copyfile \
+    OMZP::copypath \
+    OMZP::copybuffer \
+    OMZP::command-not-found \
+    OMZP::web-search \
+    OMZP::sudo \
+    OMZP::systemd \
+    OMZP::dirhistory \
+    OMZL::clipboard.zsh \
+    OMZL::history.zsh \
+    OMZL::key-bindings.zsh \
+    OMZL::directories.zsh

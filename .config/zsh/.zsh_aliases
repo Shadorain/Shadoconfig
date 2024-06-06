@@ -1,0 +1,113 @@
+# =========================================================================== #
+# Shadoconfig - Aliases                                                       #
+# =========================================================================== #
+
+# == Shell == #
+alias :wq="exit"
+alias :q="exit"
+alias q="exit"
+alias zu="zinit self-update; zinit update --parallel"
+
+
+# == System == #
+alias hypr="exec Hyprland"
+alias sus="sudo systemctl suspend"
+
+## -- BTRFS -- ##
+alias bdf='sudo btrfs filesystem df'
+alias bsnap='sudo btrfs subvolume snapshot'
+
+
+# == Terminal == #
+alias kim="kitty +kitten icat"
+
+
+# == Directory == #
+alias cdc="cd ~/Downloads/Tools/; git clone" # Capture location
+
+
+# == Arch Linux == #
+alias pS='sudo pacman -Sy'
+alias pR='sudo pacman -R'
+alias pQ='sudo pacman -Qe'
+alias pRcns='sudo pacman -Rcns'
+alias pyy='sudo pacman -Syy'
+alias pyu='sudo pacman -Syu'
+alias pyyu='sudo pacman -Syyu && paru -Syyu'
+alias Pyyu='paru -Syyu'
+alias PS='paru -Sy'
+
+
+# == Tools == #
+alias lg="lazygit"
+alias z="sw zathura "
+alias gdb="gdb -q"
+
+## -- Neovim -- ##
+alias vim="nvim"
+alias v="nvim"
+
+## -- Youtube-DL -- ##
+alias ytdl_vid="youtube-dl "
+alias ytdl_mp3="youtube-dl -x --audio-format mp3 "
+
+
+# == Utility == #
+alias rs="rsync -ar --info=progress2 --info=name0"
+alias srs="sudo rsync -ar --info=progress2 --info=name0"
+alias mpcd="mpc --host=127.0.0.1 --port=6601"
+
+## -- Listing -- ##
+alias ls="exa -F --group-directories-first --icons"
+alias lt="exa --tree --level=2"
+alias lgr="exa --grid"
+alias l="exa -lahF --git"
+alias ll="exa -lahF --git"
+alias llt="ll --tree --level=2"
+alias llg="ll --grid"
+alias la="exa -a"
+alias tree="exa --tree"
+
+## -- Printing -- ##
+alias cat="bat"
+alias catold="/usr/bin/cat"
+
+## -- Git -- ##
+alias gpam='git push all master'
+alias gpa='git push all'
+alias gpo='git push origin'
+alias gpom='git push origin master'
+alias gpoc='git push origin config'
+alias gpod='git push origin dev'
+alias gpob='git push origin base_stable'
+alias gacp='~/.config/scripts/gacp'
+alias ga='git add'
+alias gl='git pull'
+alias gca='git commit -a'
+alias gcam='git commit -a -m'
+alias gst='git status'
+alias gco='git checkout'
+alias gb='git branch'
+alias gd='git diff'
+alias gds='git diff --staged'
+alias gdp='git diff `git branch --show-current` HEAD~'
+
+
+# == Programming == #
+## -- Make -- ##
+alias mk="make"
+alias mki="make install"
+alias mci="make clean install"
+alias smki="sudo make install"
+alias smki="sudo make clean install"
+alias msmi="make && sudo make install"
+alias msci="make && sudo make clean install"
+
+## -- Cargo -- ##
+alias c="cargo"
+alias cl="cargo clippy"
+alias cr="cargo run"
+alias crr="cargo run --release"
+alias cb="cargo build"
+alias cbr="cargo build --release"
+alias ccb="cargo clean && cargo build"
