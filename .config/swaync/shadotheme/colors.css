@@ -20,9 +20,10 @@
 /*@define-color hover-alt #cba6f7;*/
 @define-color foreground white;
 @define-color background #1b1b29;
+@define-color selectedCol #ff7ab2;
 
 @define-color color0 #1b1b29;
-@define-color color1 #5459AD;/*#6875ed;*/
+@define-color color1 #6875ed;/*#6875ed;*/
 @define-color color2 #6a5acd;
 @define-color color3 #32489C;
 @define-color color4 #5651A0;
@@ -37,24 +38,3 @@
 @define-color color13 #5459AD;
 @define-color color14 #816CB6;
 @define-color color15 #d1a7ce;
-
-@define-color foreground #f6f0e0;
-@define-color background #1b1b29;
-@define-color cursor #f6f0e0;
-
-@define-color color0 #1b1b29;
-@define-color color1 #5D92C3;
-@define-color color2 #AE86A7;
-@define-color color3 #E0929D;
-@define-color color4 #FDD5AC;
-@define-color color5 #A4B9D5;
-@define-color color6 #DAD8DC;
-@define-color color7 #f6f0e0;
-@define-color color8 #aca89c;
-@define-color color9 #5D92C3;
-@define-color color10 #AE86A7;
-@define-color color11 #E0929D;
-@define-color color12 #FDD5AC;
-@define-color color13 #A4B9D5;
-@define-color color14 #DAD8DC;
-@define-color color15 #f6f0e0;

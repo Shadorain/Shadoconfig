@@ -23,7 +23,7 @@ alias kim="kitty +kitten icat"
 
 
 # == Directory == #
-alias cdc="cd ~/Downloads/Tools/; git clone" # Capture location
+alias cdc="cd ~/Downloads/Tools/" # Capture location
 
 
 # == Arch Linux == #

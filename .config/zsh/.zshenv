@@ -36,7 +36,7 @@ export EXA_COLORS=$EXA_COLORS:"*.c=38;5;169:*.h=38;5;135:*.o=38;5;97:*.y=38;5;99
 
 
 # == PATH == #
-export PATH=$PATH:~/.local/bin/
+export PATH=$PATH:~/.local/bin
 export PATH="$HOME/go/bin:$PATH"
 export PATH=$PATH:~/.local/share/nvim/mason/bin # Neovim Mason
 
