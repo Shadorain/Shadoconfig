@@ -94,11 +94,12 @@
     "network": {
         "format-wifi": " ",
         "format-alt": "   {ifname} <span color='#35355E'></span> <span color='#6272A4'>{ipaddr}/{cidr}</span>",
-        "format-ethernet": "{ifname} <span color='#35355E'></span> <span color='#6272A4'>{ipaddr}/{cidr}</span> ",
+        "format-ethernet": " ",
+        // "format-ethernet": "{ifname} <span color='#35355E'></span> <span color='#6272A4'>{ipaddr}/{cidr}</span> ",
         "format-disconnected": "睊",
         "family": "ipv4",
         "tooltip-format-wifi": "  {ifname} @ {essid}\nIP: {ipaddr}\nStrength: {signalStrength}%\nFreq: {frequency}MHz\n {bandwidthUpBits}  {bandwidthDownBits}",
-        "tooltip-format-ethernet": " {ifname}\nIP: {ipaddr}\n {bandwidthUpBits}  {bandwidthDownBits}"
+        "tooltip-format-ethernet": "  {ifname}\nIP: {ipaddr}\n {bandwidthUpBits}  {bandwidthDownBits}"
     },
     "pulseaudio": {
         "scroll-step": 2,
