@@ -1,0 +1,1 @@
+/usr/bin/nohup $1 >> $HOME/.cache/nohup.out 2>&1 &
