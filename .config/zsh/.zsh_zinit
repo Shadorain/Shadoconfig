@@ -15,22 +15,59 @@ fi
 source "${ZINIT_HOME}/zinit.zsh" # Source / Load Zinit
 
 
+# == Variables == #
+DISABLE_UNTRACKED_FILES_DIRTY="true"
+HYPHEN_INSENSITIVE="true"
+HIST_IGNORE_SPACE="true"
+CASE_SENSITIVE="false"
+KEYTIMEOUT=5
+
+
 # == Plugins == #
+(( ${+_comps} )) && _comps[zinit]=_zinit
+
+zinit light-mode for \
+    "Aloxaf/fzf-tab"
+
+zinit wait lucid for \
+    "softmoth/zsh-vim-mode" \
+    "ael-code/zsh-colored-man-pages" \
+    "MichaelAquilina/zsh-you-should-use"
+
+zinit wait lucid for \
+ atinit"ZINIT[COMPINIT_OPTS]=-C; zicompinit; zicdreplay" \
+    zdharma/fast-syntax-highlighting \
+ atload"!_zsh_autosuggest_start" \
+    zsh-users/zsh-autosuggestions
+
+
 zinit wait lucid light-mode for \
-  atinit"zicompinit; zicdreplay" \
-      zdharma-continuum/fast-syntax-highlighting \
-      OMZP::colored-man-pages \
-  atload"_zsh_autosuggest_start" \
-      zsh-users/zsh-autosuggestions \
-  blockf atpull'zinit creinstall -q .' \
-      zsh-users/zsh-completions \
-      OMZP::extract
+    OMZP::colored-man-pages \
+    OMZP::extract
 
 zinit wait"1" lucid light-mode for \
-    zdharma-continuum/history-search-multi-word \
-    softmoth/zsh-vim-mode \
-    Aloxaf/fzf-tab \
     micha/resty
+    # zdharma-continuum/history-search-multi-word
+
+## -- Snippets -- ##
+setopt promptsubst
+
+zinit wait"2" lucid light-mode for \
+    OMZP::jsontools \
+    OMZP::history \
+    OMZP::copyfile \
+    OMZP::copypath \
+    OMZP::copybuffer \
+    OMZP::command-not-found \
+    OMZP::web-search \
+    OMZP::sudo \
+    OMZP::systemd \
+    OMZP::dirhistory
+
+zinit snippet OMZL::clipboard.zsh
+zinit snippet OMZL::history.zsh
+zinit snippet OMZL::key-bindings.zsh
+zinit snippet OMZL::directories.zsh
 
 zinit ice nocompile:! pick:c.zsh atpull:%atclone atclone:'dircolors -b LS_COLORS > c.zsh'
 zinit light trapd00r/LS_COLORS
@@ -39,7 +76,7 @@ zinit light trapd00r/LS_COLORS
 ### --- Completions --- ###
 zstyle ':completion:*' accept-exact '*(N)'
 zstyle ':completion:*' use-cache on
-zstyle ':completion:*' cache-path "${ZDOTDIR}/cache"
+zstyle ':completion:*' cache-path "${ZDOTDIR}/.zsh/cache"
 
 ### --- FZF Completions --- ###
 zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
@@ -55,23 +92,5 @@ bindkey '^k' history-search-backward
 bindkey  "^[[H"   beginning-of-line
 bindkey  "^[[F"   end-of-line
 bindkey  "^[[3~"  delete-char
-
-
-# == Snippets == #
-setopt promptsubst
-
-zinit wait"2" lucid light-mode for \
-    OMZP::jsontools \
-    OMZP::history \
-    OMZP::copyfile \
-    OMZP::copypath \
-    OMZP::copybuffer \
-    OMZP::command-not-found \
-    OMZP::web-search \
-    OMZP::sudo \
-    OMZP::systemd \
-    OMZP::dirhistory \
-    OMZL::clipboard.zsh \
-    OMZL::history.zsh \
-    OMZL::key-bindings.zsh \
-    OMZL::directories.zsh
+bindkey '^H' backward-kill-word
+bindkey '5~' kill-word

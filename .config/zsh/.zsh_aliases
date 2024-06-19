@@ -16,6 +16,10 @@ alias sus="sudo systemctl suspend"
 ## -- BTRFS -- ##
 alias bdf='sudo btrfs filesystem df'
 alias bsnap='sudo btrfs subvolume snapshot'
+alias snaphome='sudo snapper -c home create --description'
+alias snaproot='sudo snapper -c root create --description'
+alias snaphomel='sudo snapper -c home list'
+alias snaprootl='sudo snapper -c root list'
 
 
 # == Terminal == #
@@ -56,6 +60,8 @@ alias ytdl_mp3="youtube-dl -x --audio-format mp3 "
 alias rs="rsync -ar --info=progress2 --info=name0"
 alias srs="sudo rsync -ar --info=progress2 --info=name0"
 alias mpcd="mpc --host=127.0.0.1 --port=6601"
+alias dush="sudo du -sh"
+alias srm="sudo rm -r"
 
 ## -- Listing -- ##
 alias ls="exa -F --group-directories-first --icons"

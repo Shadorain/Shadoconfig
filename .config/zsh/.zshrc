@@ -32,17 +32,9 @@ if [ "$TERM" = "linux" ]; then
   clear
 fi
 
-
-# == Variables == #
-DISABLE_UNTRACKED_FILES_DIRTY="true"
-HYPHEN_INSENSITIVE="true"
-CASE_SENSITIVE="false"
-KEYTIMEOUT=5
-
-
 # == Sources == #
 source ${ZDOTDIR}/.zsh_aliases
-source ${ZDOTDIR}/.zshenv
+# source ${ZDOTDIR}/.zshenv
 source ${ZDOTDIR}/.zsh_zinit
 fpath+="$ZDOTDIR/.zfunc"
 
@@ -53,14 +45,14 @@ x1 () { cat "$@" | command curl -fsLF "file=@-" 0x0.st | tr -d "\n" | awk '{prin
 
 # == History == #
 export HISTFILE="$ZDOTDIR/.zsh_history"
-export HISTDUP=erase
-setopt appendhistory
-setopt sharehistory
-setopt hist_ignore_space
-setopt hist_ignore_all_dups
-setopt hist_save_no_dups
-setopt hist_ignore_dups
-setopt hist_find_no_dups
+# export HISTDUP=erase
+# setopt appendhistory
+# setopt sharehistory
+# setopt hist_ignore_space
+# setopt hist_ignore_all_dups
+# setopt hist_save_no_dups
+# setopt hist_ignore_dups
+# setopt hist_find_no_dups
 
 
 # == Initialize == #
