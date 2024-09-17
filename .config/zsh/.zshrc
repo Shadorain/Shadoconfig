@@ -56,6 +56,7 @@ export HISTFILE="$ZDOTDIR/.zsh_history"
 
 
 # == Initialize == #
+eval $(ssh-agent -s) > /dev/null 2>&1 && ssh-add $HOME/.ssh/github_np > /dev/null 2>&1
 eval "$(fzf --zsh)"
 eval "$(zoxide init --cmd cd zsh)"
 eval "$(starship init zsh)" # Starship

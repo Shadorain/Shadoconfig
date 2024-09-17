@@ -13,6 +13,6 @@ margin = 50
 animation = "fromTop"
 command = "kitty --class scratch_ncmpcpp --title scratch_ncmpcpp ncmpcpp"
 class = "kitty-dropterm"
-size = "30% 20%"
+size = "50% 30%"
 max_size = "1920px 100%"
 margin = 50

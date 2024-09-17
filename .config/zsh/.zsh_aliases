@@ -28,6 +28,9 @@ alias kim="kitty +kitten icat"
 
 # == Directory == #
 alias cdc="cd ~/Downloads/Tools/" # Capture location
+alias cdcr="cd ~/Downloads/Tools/Repos/" # Git capture location
+alias cdd="cd ~/dev/"
+alias cddr="cd ~/dev/Rust/"
 
 
 # == Arch Linux == #
@@ -46,6 +49,8 @@ alias PS='paru -Sy'
 alias lg="lazygit"
 alias z="sw zathura "
 alias gdb="gdb -q"
+alias enc="gpg --no-symkey-cache --cipher-algo AES256 -c"
+alias dec="gpg -d"
 
 ## -- Neovim -- ##
 alias vim="nvim"

@@ -20,7 +20,7 @@ Config(
     "libtranslate.so",
     "libdictionary.so",
     "libwebsearch.so",
-    "libhyprwin.so",
+    // "libhyprwin.so",
     "libemoji.so"
   ],
 )
