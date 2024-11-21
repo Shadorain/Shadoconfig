@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+CMD="hyprsunset -t 3500"
+
+# Check if hyprsunset is running and kill it
+if pidof ${CMD} &> /dev/null; then
+    kill -SIGINT $(pidof $CMD)
+    notify-send "Sunset Toggled OFF!"
+    exit
+fi
+
+notify-send "Sunset Toggled ON!"
+${CMD}
