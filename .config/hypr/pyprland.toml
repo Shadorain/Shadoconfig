@@ -1,20 +1,34 @@
 [pyprland]
-plugins = ["scratchpads"]
+plugins = ["scratchpads", "toggle_dpms", "shortcuts_menu"]
 
 [scratchpads.term]
 animation = "fromTop"
 command = "kitty --class kitty-dropterm"
-class = "kitty-dropterm"
+class = "kitty-dropterm-def"
 size = "75% 60%"
-max_size = "1920px 100%"
+max_size = "2560px 100%"
 margin = 50
 lazy = true
 
 [scratchpads.ncmpcpp]
 animation = "fromTop"
 command = "kitty --class scratch_ncmpcpp --title scratch_ncmpcpp ncmpcpp"
-class = "kitty-dropterm"
+class = "kitty-dropterm-ncmpcpp"
 size = "50% 30%"
-max_size = "1920px 100%"
+max_size = "2560px 100%"
 margin = 50
 lazy = true
+
+[shortcuts_menu.entries]
+"Open Chromium" = 'chromium'
+"Fetch window" = "pypr fetch_client_menu"
+"Mount Drive" = [
+    # { name = "drive", command = "ls -l /dev/sd* | awk '{print $NF}'" },
+    { name = "drive", command = "ls -1 /dev/sd*" },
+    "pkexec mount [drive] /mnt/drive",
+]
+# "Unmount Drive" = [
+#     { name = "drive", command = "df -t ext4 | tail +2 | awk -v OFS='\t' '{print $1, $NF, $(NF-1)}'", filter = "s/\t.*//" },
+#     "pkexec umount [drive]",
+# ]
+"Umount Drive" = "pkexec umount /mnt/drive"

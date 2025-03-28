@@ -4,7 +4,7 @@
     // ========================================================================
     "layer": "top",     // Waybar Z axis
     "position": "top",  // Waybar screen position
-    "output": "DP-5",   // Monitor/s to display on
+    "output": "DP-2",   // Monitor/s to display on
     "height": 30,       // Height of the bar in pixels
     "spacing": 0,       // Spacing between each module
 

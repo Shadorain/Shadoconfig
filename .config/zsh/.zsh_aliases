@@ -42,7 +42,7 @@ alias pyy='sudo pacman -Syy'
 alias pyu='sudo pacman -Syu'
 alias pyyu='sudo pacman -Syyu && paru -Syyu'
 alias Pyyu='paru -Syyu'
-alias PS='paru -Sy'
+alias PS='paru -Sy --needed'
 
 
 # == Tools == #
