@@ -1,0 +1,15 @@
+[SddmGreeterTheme]
+Name=multicolor-sddm-theme
+Description=Nine popular color themes for sddm
+Author=Derek Taylor
+Copyright=(c) 2021, Derek Taylor
+License=GPL
+Type=sddm-theme
+Version=1.0
+Website=https://gitlab.com/dwt1/multicolor-sddm-theme
+Screenshot=screenshot.png
+MainScript=Main.qml
+ConfigFile=theme.conf
+Email=derek@distrotube.com
+Theme-Id=multicolor-sddm-theme
+Theme-API=2.0

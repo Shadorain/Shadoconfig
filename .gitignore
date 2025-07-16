@@ -1,2 +1,7 @@
 .config/ncmpcpp/error.log
 .config/eww/scripts/cache
+.config/hypr/scheme/current.conf
+.config/cava/shaders
+.config/lazygit/state.yml
+.config/qimgv/theme.conf.lock
+.config/qimgv/savedState.conf
