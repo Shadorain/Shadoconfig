@@ -5,3 +5,5 @@
 .config/lazygit/state.yml
 .config/qimgv/theme.conf.lock
 .config/qimgv/savedState.conf
+.config/Equicord/equicord.asar
+.config/Equicord/MessageLoggerData/
