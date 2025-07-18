@@ -7,11 +7,39 @@ alias :wq="exit"
 alias :q="exit"
 alias q="exit"
 alias zu="zinit self-update; zinit update --parallel"
+alias src="source ~/.zshenv"
 
 
 # == System == #
 alias hypr="exec Hyprland"
-alias sus="sudo systemctl suspend"
+alias sus="sudo systemctl suspend-then-hibernate"
+m() {
+    if [[ -n $1 ]]; then
+        sudo mount /dev/$1 ${2:-/mnt/drive}
+    else
+        echo "Mount point not specified"
+    fi
+}
+um() {
+    if [[ -n $1 ]]; then
+        sudo umount /dev/$1
+    else
+        echo "Mount point not specified"
+    fi
+}
+
+## Processes
+alias psa="ps auxfw | grep -i" # Grep processes
+alias pst="pstree -p" # Process tree
+psk() { # Process killer
+    killall $1 2>/dev/null
+    kill -9 $(ps auxfw | grep -i $1 | awk '{print $2}' | tr '\n' ' ')
+}
+spsk() { # Sudo process killer
+    sudo killall $1 2>/dev/null
+    sudo kill -9 $(ps auxfw | grep -i $1 | awk '{print $2}' | tr '\n' ' ')
+}
+
 
 ## -- BTRFS -- ##
 alias bdf='sudo btrfs filesystem df'
