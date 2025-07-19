@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# Copy updated files only from OneDrive Synced Vault to the git repo vault
+/usr/bin/rsync -a /home/shadow/Documents/Sync/ObsidianVault/ /home/shadow/Documents/Main/
+
+# Do git work to pull and push new data
+cd /home/shadow/Documents/Main/
+git add .
+git commit -am "vault backup onedrive: `date +'%Y-%m-%d %H:%M:%S'`"
+git pull origin master && git push origin master

@@ -1,0 +1,2 @@
+#!/bin/bash
+~/.local/share/spotify-launcher/install/usr/share/spotify/spotify --enable-features=UseOzonePlatform --ozone-platform=wayland --enable-features=WebRTCPipeWireCapturer
