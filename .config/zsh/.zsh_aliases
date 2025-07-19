@@ -97,15 +97,15 @@ alias dush="sudo du -sh"
 alias srm="sudo rm -r"
 
 ## -- Listing -- ##
-alias ls="exa -F --group-directories-first --icons"
-alias lt="exa --tree --level=2"
-alias lgr="exa --grid"
-alias l="exa -lahF --git"
-alias ll="exa -lahF --git"
+alias ls="eza -F --group-directories-first --icons"
+alias lt="eza --tree --level=2"
+alias lgr="eza --grid"
+alias l="eza -lahF --git"
+alias ll="eza -lahF --git"
 alias llt="ll --tree --level=2"
 alias llg="ll --grid"
-alias la="exa -a"
-alias tree="exa --tree"
+alias la="eza -a"
+alias tree="eza --tree"
 
 ## -- Printing -- ##
 alias cat="bat"

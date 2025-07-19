@@ -4,7 +4,7 @@
 
 # == LS Colors == #
 LS_COLORS="rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.md=38;5;68:*.log=38;5;68:*.c=38;5;169:*.h=38;5;135:*.o=38;5;97:*.y=38;5;99:*.l=38;5;99:*.sh=38;5;104"
-EXA_COLORS="*.md=38;5;68:*.log=38;5;68:*.c=38;5;169:*.cpp=38;5;169:*.h=38;5;135:*.o=38;5;97:*.y=38;5;99:*.l=38;5;99:*.sh=38;5;104"
+EZA_COLORS="*.md=38;5;68:*.log=38;5;68:*.c=38;5;169:*.cpp=38;5;169:*.h=38;5;135:*.o=38;5;97:*.y=38;5;99:*.l=38;5;99:*.sh=38;5;104"
 export FZF_DEFAULT_OPTS=" \
 --color=bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8 \
 --color=fg:#cdd6f4,header:#f38ba8,info:#cba6f7,pointer:#f5e0dc \
@@ -34,7 +34,6 @@ fi
 
 # == Sources == #
 source ${ZDOTDIR}/.zsh_aliases
-# source ${ZDOTDIR}/.zshenv
 source ${ZDOTDIR}/.zsh_zinit
 fpath+="$ZDOTDIR/.zfunc"
 
@@ -53,7 +52,6 @@ export HISTFILE="$ZDOTDIR/.zsh_history"
 # setopt hist_save_no_dups
 # setopt hist_ignore_dups
 # setopt hist_find_no_dups
-
 
 # == Initialize == #
 eval $(ssh-agent -s) > /dev/null 2>&1 && ssh-add $HOME/.ssh/github_np > /dev/null 2>&1

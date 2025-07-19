@@ -14,7 +14,6 @@ fi
 
 source "${ZINIT_HOME}/zinit.zsh" # Source / Load Zinit
 
-
 # == Variables == #
 DISABLE_UNTRACKED_FILES_DIRTY="true"
 HYPHEN_INSENSITIVE="true"
@@ -70,7 +69,6 @@ zinit snippet OMZL::key-bindings.zsh
 zinit snippet OMZL::directories.zsh
 
 zinit ice nocompile:! pick:c.zsh atpull:%atclone atclone:'dircolors -b LS_COLORS > c.zsh'
-zinit light trapd00r/LS_COLORS
 
 ## -- Config -- ##
 ### --- Completions --- ###
@@ -81,7 +79,10 @@ zstyle ':completion:*' cache-path "${ZDOTDIR}/.zsh/cache"
 ### --- FZF Completions --- ###
 zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
-(( $+commands[exa] )) && zstyle ':fzf-tab:complete:cd:*' fzf-preview 'exa -1 --color=always --icons $realpath'
+zstyle ':fzf-tab:*' query-string ''
+# zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -a --color $realpath'
+zstyle ':fzf-tab:complete:ls:*' fzf-preview 'eza -1 --color=always --icons $realpath'
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always --icons $realpath'
 zstyle ':fzf-tab:*' continuous-trigger '/'
 
 # -- Loading -- ##

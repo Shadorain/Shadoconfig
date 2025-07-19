@@ -7,3 +7,10 @@
 .config/qimgv/savedState.conf
 .config/Equicord/equicord.asar
 .config/Equicord/MessageLoggerData/
+.config/zsh/.zcompdump
+.config/zsh/.zsh_history
+.config/mpd/mpdstate
+.config/mpd/mpd.pid
+.config/mpd/mpd.log
+.config/mpd/mpd.db
+.config/hypr/workspaces.conf

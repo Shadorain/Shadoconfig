@@ -23,6 +23,7 @@ export VK_DRIVER_FILES="/usr/share/vulkan/icd.d/nvidia_icd.json"
 export ANDROID_HOME="$HOME/dev/SDK/Android"
 export ANDROID_SDK_ROOT="$HOME/dev/SDK/Android"
 export CHROME_EXECUTABLE="/usr/bin/chromium"
+export GOPATH="$HOME/.local/share/go"
 
 # == PATH == #
 export PATH="$HOME/.local/bin:$PATH"
@@ -55,4 +56,5 @@ export LIBCLANG_PATH=/usr/lib
 
 ## -- Colors -- ##
 export LS_COLORS=$LS_COLORS:"*.c=38;5;169:*.h=38;5;135:*.o=38;5;97:*.y=38;5;99:*.l=38;5;99:*.sh=38;5;104"
-export EXA_COLORS=$EXA_COLORS:"*.c=38;5;169:*.h=38;5;135:*.o=38;5;97:*.y=38;5;99:*.l=38;5;99:*.sh=38;5;104"
+export EZA_COLORS=$EZA_COLORS:"*.c=38;5;169:*.h=38;5;135:*.o=38;5;97:*.y=38;5;99:*.l=38;5;99:*.sh=38;5;104"
+. "$HOME/.cargo/env"
