@@ -1,0 +1,77 @@
+#!/bin/bash
+TYPE=$1
+AUDIO_ARGS=""
+ICONS=/usr/share/icons/OneUI-dark/symbolic/status
+HYPRPICKER_PID=-1
+
+notify() { # ($1: Icon, $2: Description, $3: Extra args)
+    notify-send -a "scr" -i $ICONS/$1.svg $3 "Screenshot" "$2"
+}
+
+killHyprpicker() {
+    if [ ! $HYPRPICKER_PID -eq -1 ]; then
+        kill $HYPRPICKER_PID
+    fi
+}
+
+case $TYPE in
+    m | monitor)
+        if grim -o "$(hyprctl monitors -j | gojq -r '.[] | select(.focused == true)' | gojq -r '.name')" - | wl-copy; then
+            notify data_icons_display-symbolic "Monitor copied to clipboard"
+        else
+            notify dialog-error-symbolic "Failed to copy monitor to clipboard"
+        fi
+    ;;
+    a | area)
+        if ! grim -g "$(slurp)" - | wl-copy; then
+            notify dialog-error-symbolic "Failed to copy area to clipboard"
+        fi
+    ;;
+    aa | area-annotate)
+        if ! grim -g "$(slurp)" - | swappy -f -; then
+            notify dialog-error-symbolic "Failed to screenshot area and annotate image"
+        fi
+    ;;
+    aad | area-annotate-delay)
+        sleep 5
+        # Hyprpicker is used to freeze the screen for a better screenshot experience
+        if [ "$(command -v "hyprpicker")" ] >/dev/null 2>&1; then
+            hyprpicker -r -z &
+            HYPRPICKER_PID=$!
+            sleep 0.2
+        fi
+        if ! (grim -g "$(slurp)" - | swappy -f -); then
+            notify dialog-error-symbolic "Failed to screenshot area and annotate image after delay"
+        fi
+        killHyprpicker
+    ;;
+    ex | extract)
+        if grim -g "$(slurp $SLURP_ARGS)" "/tmp/tmp.png" && tesseract -l eng "/tmp/tmp.png" - | wl-copy && rm "/tmp/tmp.png"; then
+            notify-send user-available-symbolic "Extracted text from area into clipboard"
+        else
+            notify dialog-error-symbolic "Failed to extract text from area image"
+        fi
+    ;;
+    sra | screenrec-audio)
+        AUDIO_ARGS="--audio"
+    ;&
+    sr | screenrec)
+        # Check if wf-recorder is running and stop it
+        if pidof ${CMD} &> /dev/null; then
+            kill -SIGINT $(pidof $CMD)
+            notify-send -e -i $ICONS/user-available-symbolic.svg "Screen Recording" "Screen recording stopped!"
+            exit
+        fi
+        if [[ -z "$AUDIO_ARGS" ]]; then
+            notify screen-shared-symbolic "Screen recording started... (in 2 secs)" "-e -t 2000"
+        else
+            notify audio-input-microphone-medium-symbolic "Screen & audio recording started... (in 2 secs)" "-e -t 2000"
+        fi
+        sleep 2 && wf-recorder -g "$(slurp)" "${AUDIO_ARGS}" -f "$HOME/Videos/Recordings/recording-$(date +"%d%m%Y-T%H%M%S").mp4"
+    ;;
+    *)
+        echo "No arguments specified"
+        exit 1
+    ;;
+esac
+

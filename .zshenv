@@ -28,7 +28,7 @@ export GOPATH="$HOME/.local/share/go"
 # == PATH == #
 export PATH="$HOME/.local/bin:$PATH"
 export PATH="$HOME/go/bin:$PATH"
-export PATH="$HOME/dev/SDK/flutter/bin:$PATH"
+export PATH="$HOME/dev/Flutter/SDK/flutter/bin:$PATH"
 export PATH="$PATH":"$HOME/.pub-cache/bin"
 export PATH=$PATH:~/.local/share/nvim/mason/bin # Neovim Mason
 

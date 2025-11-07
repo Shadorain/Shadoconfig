@@ -1,0 +1,10 @@
+#!/bin/sh
+
+app=$1
+app_id=$2
+
+if [ -z "$app_id" ]; then
+	chromium --user-data-dir="$HOME/.local/share/chrome-apps/$app" --class=chrome-app
+else
+	chromium --class=chrome-app --app-id=$app_id --kiosk
+fi
