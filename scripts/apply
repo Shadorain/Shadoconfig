@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PACKAGES_DIR="$ROOT_DIR/packages"
+PROFILES_DIR="$ROOT_DIR/profiles"
+OVERLAYS_DIR="$ROOT_DIR/overlays"
+
+PROFILE="${1:-$("$ROOT_DIR/scripts/detect-profile")}"
+
+echo "==> Using profile: $PROFILE"
+
+if [[ ! -f "$PROFILES_DIR/$PROFILE" ]]; then
+  echo "Profile '$PROFILE' does not exist"
+  exit 1
+fi
+
+cd "$PACKAGES_DIR"
+
+# Unstow everything first (safe reset)
+echo "==> Cleaning existing symlinks..."
+for dir in */; do
+  stow -D "${dir%/}" 2>/dev/null || true
+done
+
+# Apply selected packages
+echo "==> Stowing packages..."
+while read -r pkg; do
+  [[ -z "$pkg" ]] && continue
+  echo "  -> $pkg"
+  stow "$pkg"
+done < "$PROFILES_DIR/$PROFILE"
+
+# Apply overlays (if exist)
+if [[ -d "$OVERLAYS_DIR/$PROFILE" ]]; then
+  echo "==> Applying overlay: $PROFILE"
+  stow -d "$OVERLAYS_DIR" -t "$HOME" "$PROFILE"
+fi
+
+echo "✅ Done"

@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+OS="$(uname -s)"
+HOST="$(hostname)"
+
+case "$OS" in
+Darwin)
+    echo "mac"
+    ;;
+Linux)
+    # Customize per machine
+    case "$HOST" in
+    *desktop*)
+        echo "desktop"
+        ;;
+    *)
+        echo "minimal"
+        ;;
+    esac
+    ;;
+*)
+    echo "minimal"
+    ;;
+esac
