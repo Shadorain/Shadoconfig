@@ -6,35 +6,61 @@ PACKAGES_DIR="$ROOT_DIR/packages"
 PROFILES_DIR="$ROOT_DIR/profiles"
 OVERLAYS_DIR="$ROOT_DIR/overlays"
 
-PROFILE="${1:-$("$ROOT_DIR/scripts/detect-profile")}"
+PROFILE=""
+TARGET="$HOME"
+
+# -------------------------
+# Parse args
+# -------------------------
+if [[ $# -ge 1 ]]; then
+    PROFILE="$1"
+fi
+
+if [[ $# -ge 2 ]]; then
+    TARGET="$2"
+fi
+
+# Auto-detect profile if not provided
+if [[ -z "$PROFILE" ]]; then
+    PROFILE="$("$ROOT_DIR/scripts/detect-profile")"
+fi
 
 echo "==> Using profile: $PROFILE"
+echo "==> Target directory: $TARGET"
 
 if [[ ! -f "$PROFILES_DIR/$PROFILE" ]]; then
-  echo "Profile '$PROFILE' does not exist"
-  exit 1
+    echo "Profile '$PROFILE' does not exist"
+    exit 1
 fi
 
 cd "$PACKAGES_DIR"
 
-# Unstow everything first (safe reset)
+# -------------------------
+# Clean existing symlinks
+# -------------------------
 echo "==> Cleaning existing symlinks..."
 for dir in */; do
-  stow -D "${dir%/}" 2>/dev/null || true
+    stow -D -t "$TARGET" "${dir%/}" 2>/dev/null || true
 done
 
-# Apply selected packages
+# -------------------------
+# Apply packages
+# -------------------------
 echo "==> Stowing packages..."
 while read -r pkg; do
-  [[ -z "$pkg" ]] && continue
-  echo "  -> $pkg"
-  stow "$pkg"
-done < "$PROFILES_DIR/$PROFILE"
+    [[ -z "$pkg" ]] && continue
+    [[ -d "$pkg" ]] || continue
 
-# Apply overlays (if exist)
+    echo "  -> $pkg"
+    stow -t "$TARGET" "$pkg"
+done <"$PROFILES_DIR/$PROFILE"
+
+# -------------------------
+# Apply overlays
+# -------------------------
 if [[ -d "$OVERLAYS_DIR/$PROFILE" ]]; then
-  echo "==> Applying overlay: $PROFILE"
-  stow -d "$OVERLAYS_DIR" -t "$HOME" "$PROFILE"
+    echo "==> Applying overlay: $PROFILE"
+    stow -d "$OVERLAYS_DIR" -t "$TARGET" "$PROFILE"
 fi
 
 echo "✅ Done"

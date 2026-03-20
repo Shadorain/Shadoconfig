@@ -14,3 +14,5 @@
 .config/mpd/mpd.log
 .config/mpd/mpd.db
 .config/hypr/workspaces.conf
+\.zcompdump
+\.zsh_history

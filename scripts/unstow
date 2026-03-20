@@ -4,13 +4,15 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PACKAGES_DIR="$ROOT_DIR/packages"
 
+TARGET="${1:-$HOME}"
+
+echo "==> Removing symlinks from: $TARGET"
+
 cd "$PACKAGES_DIR"
 
-echo "==> Removing all stowed packages..."
-
 for dir in */; do
-  echo "  -> ${dir%/}"
-  stow -D "${dir%/}" 2>/dev/null || true
+    echo "  -> ${dir%/}"
+    stow -D -t "$TARGET" "${dir%/}" 2>/dev/null || true
 done
 
-echo "✅ All symlinks removed"
+echo "✅ Done"

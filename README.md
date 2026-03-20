@@ -118,6 +118,7 @@ Located in `scripts/`:
 ```
 git clone https://github.com/Shadorain/Shadoconfig ~/.dotfiles
 cd ~/.dotfiles
+chmod +x scripts/*
 ./scripts/apply
 ```
 
