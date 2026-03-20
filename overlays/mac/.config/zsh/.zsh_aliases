@@ -1,0 +1,107 @@
+# =========================================================================== #
+# Shadoconfig - Aliases                                                       #
+# =========================================================================== #
+
+# == Shell == #
+alias :wq="exit"
+alias :q="exit"
+alias q="exit"
+alias zu="zinit self-update; zinit update --parallel"
+alias src="source ~/.zshenv"
+
+# == System == #
+## Processes
+alias psa="ps auxfw | grep -i" # Grep processes
+alias pst="pstree -p" # Process tree
+psk() { # Process killer
+    killall $1 2>/dev/null
+    kill -9 $(ps auxfw | grep -i $1 | awk '{print $2}' | tr '\n' ' ')
+}
+spsk() { # Sudo process killer
+    sudo killall $1 2>/dev/null
+    sudo kill -9 $(ps auxfw | grep -i $1 | awk '{print $2}' | tr '\n' ' ')
+}
+
+# == Directory == #
+alias cdd="cd ~/dev/"
+
+
+# == Packages == #
+alias bi='brew install'
+alias bu='brew update'
+alias buu='brew update && brew upgrade'
+alias br='brew uninstall'
+
+
+# == Tools == #
+alias lg="lazygit"
+
+## -- Neovim -- ##
+alias vim="nvim"
+alias v="nvim"
+
+
+# == Utility == #
+alias rs="rsync -ar --info=progress2 --info=name0"
+alias srs="sudo rsync -ar --info=progress2 --info=name0"
+alias dush="sudo du -sh"
+alias srm="sudo rm -r"
+
+## -- File Listing -- ##
+alias ls="eza -F --group-directories-first --icons"
+alias lt="eza --tree --level=2"
+alias lgr="eza --grid"
+alias l="eza -lahF --git"
+alias ll="eza -lahF --git"
+alias llt="ll --tree --level=2"
+alias llg="ll --grid"
+alias la="eza -a"
+alias tree="eza --tree"
+
+## -- Printing -- ##
+alias cat="bat"
+alias catold="/usr/bin/cat"
+
+## -- Git -- ##
+alias gpam='git push all master'
+alias gpa='git push all'
+alias gpo='git push origin'
+alias gpom='git push origin master'
+alias gpoc='git push origin config'
+alias gpod='git push origin dev'
+alias gpob='git push origin base_stable'
+alias gacp='~/.config/scripts/gacp'
+alias ga='git add'
+alias gl='git pull'
+alias gca='git commit -a'
+alias gcam='git commit -a -m'
+alias gst='git status'
+alias gco='git checkout'
+alias gb='git branch'
+alias gd='git diff'
+alias gds='git diff --staged'
+alias gdp='git diff `git branch --show-current` HEAD~'
+
+
+# == Programming == #
+## -- Make -- ##
+alias mk="make"
+alias mki="make install"
+alias mci="make clean install"
+alias smki="sudo make install"
+alias smki="sudo make clean install"
+alias msmi="make && sudo make install"
+alias msci="make && sudo make clean install"
+
+## -- Cargo -- ##
+alias c="cargo"
+alias cl="cargo clippy"
+alias cr="cargo run"
+alias crr="cargo run --release"
+alias cb="cargo build"
+alias cbr="cargo build --release"
+alias ccb="cargo clean && cargo build"
+
+## -- Taskfile -- ##
+alias t="task"
+alias tl="task --list-all"
