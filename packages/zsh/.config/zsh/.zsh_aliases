@@ -150,3 +150,7 @@ alias crr="cargo run --release"
 alias cb="cargo build"
 alias cbr="cargo build --release"
 alias ccb="cargo clean && cargo build"
+
+## -- Taskfile -- ##
+alias t="task"
+alias tl="task --list-all"
