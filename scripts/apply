@@ -6,27 +6,38 @@ PACKAGES_DIR="$ROOT_DIR/packages"
 PROFILES_DIR="$ROOT_DIR/profiles"
 OVERLAYS_DIR="$ROOT_DIR/overlays"
 
+FORCE=false
 PROFILE=""
 TARGET="$HOME"
 
 # -------------------------
 # Parse args
 # -------------------------
-if [[ $# -ge 1 ]]; then
-    PROFILE="$1"
-fi
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+    -f | --force)
+        FORCE=true
+        shift
+        ;;
+    *)
+        if [[ -z "$PROFILE" ]]; then
+            PROFILE="$1"
+        elif [[ "$TARGET" == "$HOME" ]]; then
+            TARGET="$1"
+        fi
+        shift
+        ;;
+    esac
+done
 
-if [[ $# -ge 2 ]]; then
-    TARGET="$2"
-fi
-
-# Auto-detect profile if not provided
+# Auto-detect profile
 if [[ -z "$PROFILE" ]]; then
     PROFILE="$("$ROOT_DIR/scripts/detect-profile")"
 fi
 
 echo "==> Using profile: $PROFILE"
 echo "==> Target directory: $TARGET"
+echo "==> Force mode: $FORCE"
 
 if [[ ! -f "$PROFILES_DIR/$PROFILE" ]]; then
     echo "Profile '$PROFILE' does not exist"
@@ -36,31 +47,128 @@ fi
 cd "$PACKAGES_DIR"
 
 # -------------------------
-# Clean existing symlinks
+# Unstow ONLY relevant packages
 # -------------------------
-echo "==> Cleaning existing symlinks..."
-for dir in */; do
-    stow -D -t "$TARGET" "${dir%/}" 2>/dev/null || true
-done
+echo "==> Cleaning profile packages..."
+while IFS= read -r pkg; do
+    [[ -z "$pkg" || "$pkg" =~ ^# ]] && continue
+    [[ -d "$pkg" ]] || continue
+
+    echo "  -> unstow $pkg"
+    stow -D -t "$TARGET" "$pkg" 2>/dev/null || true
+done <"$PROFILES_DIR/$PROFILE"
 
 # -------------------------
-# Apply packages
+# Stow packages
 # -------------------------
 echo "==> Stowing packages..."
-while read -r pkg; do
+while IFS= read -r pkg; do
     [[ -z "$pkg" ]] && continue
     [[ -d "$pkg" ]] || continue
 
-    echo "  -> $pkg"
+    echo "  -> stow $pkg"
     stow -t "$TARGET" "$pkg"
 done <"$PROFILES_DIR/$PROFILE"
 
 # -------------------------
-# Apply overlays
+# Materialize a symlinked directory:
+#   Replace a directory symlink with a real dir containing
+#   individual symlinks to each item in the original target.
+#   This prevents overlay writes from corrupting the stow source.
+# -------------------------
+materialize_dir() {
+    local link="$1"
+
+    # Resolve the symlink (handle relative links)
+    local real_target
+    real_target="$(readlink "$link")"
+    if [[ "$real_target" != /* ]]; then
+        real_target="$(cd "$(dirname "$link")" && cd "$real_target" && pwd)"
+    fi
+
+    echo "  -> materializing dir symlink: $link -> $real_target"
+
+    rm "$link"
+    mkdir -p "$link"
+
+    # Re-link each item individually (hidden + normal files)
+    local item
+    for item in "$real_target"/.[!.]* "$real_target"/*; do
+        # Guard against empty glob expansion
+        [[ -e "$item" || -L "$item" ]] || continue
+        ln -s "$item" "$link/$(basename "$item")"
+    done
+}
+
+# -------------------------
+# Walk the path from TARGET down to (but not including) the
+# final file, materializing any directory symlinks along the way.
+# -------------------------
+ensure_real_parents() {
+    local target="$1"
+
+    # Strip the target base to get the relative path
+    local rel="${target#"$TARGET"/}"
+
+    # Walk each path component (excluding the final filename)
+    local current="$TARGET"
+    local part
+    while IFS= read -r part; do
+        current="$current/$part"
+
+        # Stop before the file itself
+        [[ "$current" == "$target" ]] && break
+
+        # If this path component is a symlink pointing to a directory,
+        # materialize it so writes inside it don't touch the stow source.
+        if [[ -L "$current" && -d "$current" ]]; then
+            materialize_dir "$current"
+        fi
+    done < <(tr '/' '\n' <<<"$rel")
+}
+
+# -------------------------
+# Apply overlays (file-level, safe)
 # -------------------------
 if [[ -d "$OVERLAYS_DIR/$PROFILE" ]]; then
     echo "==> Applying overlay: $PROFILE"
-    stow -d "$OVERLAYS_DIR" -t "$TARGET" "$PROFILE"
+
+    while IFS= read -r -d '' src; do
+        # Compute relative path from overlay root
+        rel="${src#"$OVERLAYS_DIR/$PROFILE"/}"
+        target="$TARGET/$rel"
+        target_dir="$(dirname "$target")"
+
+        echo "  [overlay] $rel"
+
+        # Before touching anything inside the path, ensure every parent
+        # directory is a real directory (not a stow-managed dir symlink).
+        ensure_real_parents "$target"
+
+        # Ensure parent directory exists (now guaranteed to be real)
+        mkdir -p "$target_dir"
+
+        # Handle an already-existing target
+        if [[ -e "$target" || -L "$target" ]]; then
+            if [[ "$FORCE" == true ]]; then
+                echo "  -> replacing $target"
+                rm -rf "$target"
+            else
+                if [[ -L "$target" ]]; then
+                    echo "  -> replacing existing symlink $target"
+                    rm "$target"
+                else
+                    echo "ERROR: $target already exists and is not a symlink; use -f to force"
+                    exit 1
+                fi
+            fi
+        fi
+
+        # Create symlink from overlay into HOME
+        echo "  -> linking $src -> $target"
+        ln -s "$src" "$target"
+
+    done < <(find "$OVERLAYS_DIR/$PROFILE" -type f -print0)
 fi
 
 echo "✅ Done"

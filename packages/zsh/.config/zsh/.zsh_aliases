@@ -9,6 +9,17 @@ alias q="exit"
 alias zu="zinit self-update; zinit update --parallel"
 alias src="source ~/.zshenv"
 
+# == Suffix == #
+alias -s md="bat"
+alias -s mov="open"
+alias -s png="open"
+alias -s mp4="open"
+alias -s go="$EDITOR"
+alias -s rs="$EDITOR"
+alias -s py="$EDITOR"
+alias -s yaml="bat -l yaml"
+alias -s json="jless"
+
 
 # == System == #
 alias hypr="exec Hyprland"
