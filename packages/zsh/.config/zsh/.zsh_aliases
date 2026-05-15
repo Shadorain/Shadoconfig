@@ -20,7 +20,6 @@ alias -s py="$EDITOR"
 alias -s yaml="bat -l yaml"
 alias -s json="jless"
 
-
 # == System == #
 alias hypr="exec Hyprland"
 alias sus="sudo systemctl suspend-then-hibernate"
@@ -70,6 +69,7 @@ alias cdc="cd ~/Downloads/Tools/" # Capture location
 alias cdcr="cd ~/Downloads/Tools/Repos/" # Git capture location
 alias cdd="cd ~/dev/"
 alias cddr="cd ~/dev/Rust/"
+alias CC="cd ~/Documents/Claude/Projects"
 
 
 # == Arch Linux == #
@@ -163,5 +163,16 @@ alias cbr="cargo build --release"
 alias ccb="cargo clean && cargo build"
 
 ## -- Taskfile -- ##
-alias t="task"
-alias tl="task --list-all"
+alias t="go-task"
+alias tl="go-task --list-all"
+alias task="go-task"
+
+## -- K3S -- ##
+alias k="kubectl"
+
+## -- Just -- ##
+alias j="just"
+alias jb="just build"
+alias jr="just run"
+alias ji="just install"
+alias jc="just clean"

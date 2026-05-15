@@ -42,11 +42,10 @@ x0 () { cat "$@" | command curl -fsLF "file=@-" 0x0.st | tr -d "\n" | xclip -in 
 x1 () { cat "$@" | command curl -fsLF "file=@-" 0x0.st | tr -d "\n" | awk '{print $0}' }
 
 # -- Nvim Switcher -- #
-alias nvim-lazy="NVIM_APPNAME=nvim-lazy nvim"
-alias nvim-astro="NVIM_APPNAME=nvim-astro nvim"
+alias nvim-old="NVIM_APPNAME=nvim-old nvim"
 
 function nvims() {
-  items=("default" "nvim-lazy" "nvim-astro")
+  items=("default" "nvim-old")
   config=$(printf "%s\n" "${items[@]}" | fzf --prompt=" Neovim Config  " --height=~50% --layout=reverse --border --exit-0)
   if [[ -z $config ]]; then
     echo "Nothing selected"
@@ -56,8 +55,8 @@ function nvims() {
   fi
   NVIM_APPNAME=$config nvim $@
 }
-
 bindkey -s ^a "nvims\n"
+bindkey -r "^j"
 
 # == History == #
 export HISTFILE="$ZDOTDIR/.zsh_history"
@@ -69,6 +68,10 @@ export HISTFILE="$ZDOTDIR/.zsh_history"
 # setopt hist_save_no_dups
 # setopt hist_ignore_dups
 # setopt hist_find_no_dups
+
+fpath=(${ZDOTDIR}/completion $fpath)
+autoload -U compinit
+compinit
 
 # == Initialize == #
 eval $(ssh-agent -s) > /dev/null 2>&1 && ssh-add $HOME/.ssh/github_np > /dev/null 2>&1

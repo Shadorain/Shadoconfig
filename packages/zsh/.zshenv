@@ -24,6 +24,9 @@ export ANDROID_HOME="$HOME/dev/SDK/Android"
 export ANDROID_SDK_ROOT="$HOME/dev/SDK/Android"
 export CHROME_EXECUTABLE="/usr/bin/chromium"
 export GOPATH="$HOME/.local/share/go"
+export GHCR_USER=Shadorain
+export GHCR_PAT=$(cat $HOME/dev/.pat)
+export KUBECONFIG=~/.kube/config
 
 # == PATH == #
 export PATH="$HOME/.local/bin:$PATH"
@@ -57,4 +60,3 @@ export LIBCLANG_PATH=/usr/lib
 ## -- Colors -- ##
 export LS_COLORS=$LS_COLORS:"*.c=38;5;169:*.h=38;5;135:*.o=38;5;97:*.y=38;5;99:*.l=38;5;99:*.sh=38;5;104"
 export EZA_COLORS=$EZA_COLORS:"*.c=38;5;169:*.h=38;5;135:*.o=38;5;97:*.y=38;5;99:*.l=38;5;99:*.sh=38;5;104"
-. "$HOME/.cargo/env"

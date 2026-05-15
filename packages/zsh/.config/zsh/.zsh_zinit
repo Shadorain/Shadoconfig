@@ -28,6 +28,8 @@ KEYTIMEOUT=5
 zinit light-mode for \
     "Aloxaf/fzf-tab"
 
+zinit load Dbz/kube-aliases
+
 zinit wait lucid for \
     "softmoth/zsh-vim-mode" \
     "ael-code/zsh-colored-man-pages" \
