@@ -1,0 +1,1 @@
+~/.apps/ticktick*.AppImage --ozone-platform=wayland --enable-features=WaylandWindowDecorations --disable-gpu-compositing "$@"

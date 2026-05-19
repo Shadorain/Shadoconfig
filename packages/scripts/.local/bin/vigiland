@@ -1,0 +1,34 @@
+#!/bin/bash
+
+STATEFD="/tmp/vigiland-state"
+
+function usage {
+    echo "Usage: $0 [-t|--toggle] [-c|--check]"
+    exit 0
+}
+
+function toggle {
+    if [ -e "$STATEFD" ]; then
+        notify-send 'Vigiland' 'Stopping vigiland'
+        rm "$STATEFD"
+    else
+        notify-send 'Vigiland' 'Vigiland started!'
+        touch "$STATEFD"
+    fi
+}
+
+function check {
+    if [ -e "$STATEFD" ]; then
+        exit 0
+    fi
+    exit 1
+}
+
+while getopts "htc" opt; do
+    case "$opt" in
+    h) usage ;;
+    t) toggle ;;
+    c) check ;;
+    *) usage ;;
+    esac
+done

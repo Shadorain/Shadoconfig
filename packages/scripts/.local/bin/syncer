@@ -1,0 +1,566 @@
+#!/usr/bin/env python3
+"""
+syncer.py
+
+Comprehensive NAS sync tool wrapping rsync + ssh.
+
+Dependencies:
+ - Python 3.8+
+ - rsync and ssh installed on the system
+ - Optional: fzf for interactive selection
+ - Optional: pyyaml if you want to load a YAML config file
+
+Usage examples:
+  python3 syncer.py push --profile home_nas --target media --files ~/Videos/movie.mp4
+  python3 syncer.py pull --profile home_nas --target docs --remote-path /volume1/shared/documents/report.pdf --local .
+  python3 syncer.py sync --profile home_nas --target photos --local ~/Pictures      # bi-directional (safe by default)
+  python3 syncer.py sync --profile home_nas --target photos --local ~/Pictures --full  # full sync (delete-enabled mirror)
+  python3 syncer.py preview push --profile home_nas --target docs --files ~/notes
+  python3 syncer.py interactive   # interactive TUI if fzf is available
+"""
+
+import argparse
+import os
+import shlex
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+try:
+    import yaml  # optional: allow user to provide YAML config
+except Exception:
+    yaml = None
+
+# ---------------------------
+# Default configuration area
+# You can edit these values directly, or create a YAML config file and point to it
+# ---------------------------
+DEFAULT_CONFIG = {
+    "compression": False,           # rsync -z
+    "progress": True,               # rsync --info=progress2
+    "auto_create_dirs": True,       # mkdir -p on remote
+    "profiles": {
+        "home_nas": {
+            "host": "shadonas",
+            "user": "shadow",
+            "base_path": ""
+        },
+        # Add other profiles here...
+    },
+    "targets": {
+        "media": "media",
+        "backup": "backups",
+        "docs": "documents",
+        "photos": "photos",
+        "music": "music",
+        "dev": "volume1/docker/cachyos-dev/dev",
+    },
+    "push_presets": {
+        # name: local_path
+        "photos_backup": str(Path.home() / "Pictures"),
+        "dotfiles": str(Path.home() / ".config"),
+    },
+    "pull_presets": {
+        # name: remote_subpath
+        "important_docs": "documents",
+    }
+}
+# ---------------------------
+
+
+def load_config(path: str | None):
+    """Load YAML config if provided, else return DEFAULT_CONFIG."""
+    if path:
+        if not yaml:
+            print("PyYAML not installed; cannot read config file. Install with `pip install pyyaml`.")
+            sys.exit(1)
+        with open(path, "r") as f:
+            cfg = yaml.safe_load(f)
+        # Basic merge: overlay keys from file on top of defaults
+        merged = DEFAULT_CONFIG.copy()
+        merged.update(cfg or {})
+        # for nested dicts do shallow merge for common parts
+        for key in ("profiles", "targets", "push_presets", "pull_presets"):
+            merged.setdefault(key, {})
+            if cfg and key in cfg:
+                merged[key].update(cfg[key])
+        return merged
+    else:
+        return DEFAULT_CONFIG.copy()
+
+
+# ---------------------------
+# Helpers
+# ---------------------------
+def run(cmd, check=True, capture=False):
+    if isinstance(cmd, (list, tuple)):
+        proc = subprocess.run(cmd, check=False, capture_output=capture, text=True)
+    else:
+        proc = subprocess.run(cmd, shell=True, check=False, capture_output=capture, text=True)
+    if check and proc.returncode != 0:
+        # show helpful output
+        print(f"[ERROR] command failed (rc={proc.returncode}): {' '.join(cmd) if isinstance(cmd, (list, tuple)) else cmd}")
+        if proc.stdout:
+            print("--- stdout ---")
+            print(proc.stdout)
+        if proc.stderr:
+            print("--- stderr ---")
+            print(proc.stderr)
+        sys.exit(proc.returncode)
+    return proc
+
+
+def rsync_cmd(src, dst, cfg, delete=False, dry_run=False, compress=None):
+    """Build rsync command list."""
+    cmd = ["rsync", "-a", "-v"]
+    # progress
+    if cfg.get("progress", True):
+        cmd += ["--info=progress2"]
+    # compression (flag overrides config if not None)
+    use_z = cfg.get("compression", False) if compress is None else compress
+    if use_z:
+        cmd.append("-z")
+    # update behavior
+    cmd.append("--update")  # don't overwrite newer files on the destination
+    if delete:
+        cmd.append("--delete")
+    if dry_run:
+        cmd.append("--dry-run")
+    # preserve extended attributes and perms - keep default -a
+    cmd += [src, dst]
+    return cmd
+
+
+def ensure_remote_dir(profile, remote_subpath):
+    """Ensure remote directory exists with mkdir -p via ssh."""
+    host = profile["host"]
+    user = profile.get("user")
+    base = profile["base_path"].rstrip("/")
+    remote_full = f"{base}/{remote_subpath}".rstrip("/")
+    ssh_target = f"{user}@{host}" if user else host
+    cmd = ["ssh", ssh_target, "mkdir", "-p", shlex.quote(remote_full)]
+    # run without check? prefer check
+    return run(cmd, check=True)
+
+
+def remote_full_path(profile, remote_subpath):
+    base = profile["base_path"].rstrip("/")
+    return f"{base}/{remote_subpath}".rstrip("/")
+
+
+def pick_with_fzf(options, prompt="Choose: ", preview=None, height="40%"):
+    """Use fzf to pick from options (list). Returns selected string or None."""
+    if not shutil.which("fzf"):
+        return None
+    # prepare input for fzf
+    p = subprocess.Popen(["fzf", "--prompt", prompt, "--height", height, "--border"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
+    p_input = "\n".join(options)
+    out, _ = p.communicate(p_input)
+    if p.returncode != 0:
+        return None
+    return out.strip()
+
+
+def list_remote_paths(profile, remote_base, only_dirs=False):
+    """Return list of remote paths (files and/or dirs) under remote_base using ssh+find."""
+    host = profile["host"]
+    user = profile.get("user")
+    ssh_target = f"{user}@{host}" if user else host
+    find_type = "-type d" if only_dirs else ""  # if empty it returns files + dirs by default
+    # Use -mindepth 1 so base directory itself not printed
+    remote_base_quoted = shlex.quote(remote_base)
+    cmd = ["ssh", ssh_target, "bash", "-lc",
+           f"find {remote_base_quoted} -mindepth 1 {find_type} 2>/dev/null || true"]
+    proc = run(cmd, check=False, capture=True)
+    lines = proc.stdout.splitlines()
+    return lines
+
+
+def preview_dry_run(profile, local_src, remote_subpath, cfg, delete=False, compress=None):
+    """Run rsync dry-run and return its stdout."""
+    profile_host = profile["host"]
+    profile_user = profile.get("user")
+    remote_path = remote_full_path(profile, remote_subpath)
+    if local_src.endswith("/"):
+        src = local_src
+    else:
+        src = local_src.rstrip("/") + "/"
+    dst = f"{profile_user}@{profile_host}:{remote_path}/"
+    cmd = rsync_cmd(src, dst, cfg, delete=delete, dry_run=True, compress=compress)
+    print("[preview] " + " ".join(shlex.quote(x) for x in cmd))
+    proc = run(cmd, check=False, capture=True)
+    return proc.stdout
+
+
+# ---------------------------
+# High-level operations
+# ---------------------------
+def action_push(profile, cfg, target_subpath, files, compress=None, dry_run=False):
+    """Push local files/folder to remote target_subpath."""
+    remote_path = remote_full_path(profile, target_subpath)
+    if cfg.get("auto_create_dirs", True):
+        print(f"[info] Ensuring remote dir exists: {remote_path}")
+        ensure_remote_dir(profile, target_subpath)
+    ssh_user_host = f"{profile.get('user','')}@{profile['host']}" if profile.get("user") else profile['host']
+
+    # If files is a list/tuple convert; allow single string too
+    if isinstance(files, (list, tuple)):
+        # For multiple local paths, rsync them to remote path (destination as dir)
+        srcs = files
+        # Build rsync: rsync -a local1 local2 ... user@host:/remote/path/
+        # Note: subprocess with list requires placing all srcs then dest
+        cmd = ["rsync", "-a", "-v"]
+        if cfg.get("progress", True):
+            cmd += ["--info=progress2"]
+        use_z = cfg.get("compression", False) if compress is None else compress
+        if use_z:
+            cmd.append("-z")
+        cmd.append("--update")
+        if dry_run:
+            cmd.append("--dry-run")
+        cmd += srcs + [f"{ssh_user_host}:{remote_path}/"]
+        print("[run] " + " ".join(shlex.quote(x) for x in cmd))
+        run(cmd)
+    else:
+        # single path
+        local_src = str(files)
+        src = local_src.rstrip("/") + "/"
+        dst = f"{ssh_user_host}:{remote_path}/"
+        cmd = rsync_cmd(src, dst, cfg, delete=False, dry_run=dry_run, compress=compress)
+        print("[run] " + " ".join(shlex.quote(x) for x in cmd))
+        run(cmd)
+
+
+def action_pull(profile, cfg, remote_path, local_dest, compress=None, dry_run=False):
+    """Pull file or folder from remote_path under profile into local_dest."""
+    ssh_user_host = f"{profile.get('user','')}@{profile['host']}" if profile.get("user") else profile['host']
+    remote = f"{ssh_user_host}:{remote_path}"
+    local_dest = str(local_dest)
+    if os.path.isdir(local_dest):
+        dst = local_dest.rstrip("/") + "/"
+    else:
+        # create destination dir if it's a directory target not existing
+        parent = os.path.dirname(local_dest) or "."
+        Path(parent).mkdir(parents=True, exist_ok=True)
+        dst = local_dest
+    cmd = rsync_cmd(remote, dst, cfg, delete=False, dry_run=dry_run, compress=compress)
+    print("[run] " + " ".join(shlex.quote(x) for x in cmd))
+    run(cmd)
+
+
+def action_sync_bi(profile, cfg, target_subpath, local_dir, full=False, compress=None, dry_run=False):
+    """Bi-directional sync between local_dir and profile:target_subpath.
+       full=True enables --delete (mirror) behavior.
+       dry_run shows preview only.
+    """
+    remote_path = remote_full_path(profile, target_subpath)
+    ssh_user_host = f"{profile.get('user','')}@{profile['host']}" if profile.get("user") else profile['host']
+    # ensure remote present
+    if cfg.get("auto_create_dirs", True):
+        print(f"[info] Ensuring remote dir exists: {remote_path}")
+        ensure_remote_dir(profile, target_subpath)
+
+    # Local -> Remote (push)
+    print("[sync] local -> remote")
+    src = str(local_dir).rstrip("/") + "/"
+    dst = f"{ssh_user_host}:{remote_path}/"
+    cmd1 = rsync_cmd(src, dst, cfg, delete=full, dry_run=dry_run, compress=compress)
+    print("[run] " + " ".join(shlex.quote(x) for x in cmd1))
+    run(cmd1)
+
+    # Remote -> Local (pull)
+    print("[sync] remote -> local")
+    src2 = f"{ssh_user_host}:{remote_path}/"
+    dst2 = str(local_dir).rstrip("/") + "/"
+    cmd2 = rsync_cmd(src2, dst2, cfg, delete=full, dry_run=dry_run, compress=compress)
+    print("[run] " + " ".join(shlex.quote(x) for x in cmd2))
+    run(cmd2)
+
+    print("[ok] sync finished.")
+
+
+# ---------------------------
+# Interactive helpers
+# ---------------------------
+def interactive_mode(cfg):
+    """Simple interactive TUI using fzf if available; otherwise fallback to textual prompts."""
+    has_fzf = shutil.which("fzf") is not None
+    profiles = list(cfg["profiles"].keys())
+    if not profiles:
+        print("No profiles configured.")
+        return
+
+    # pick profile
+    if has_fzf:
+        profile_name = pick_with_fzf(profiles, prompt="Profile: ")
+        if not profile_name:
+            print("Cancelled")
+            return
+    else:
+        print("Profiles:")
+        for i, p in enumerate(profiles):
+            print(f"{i+1}) {p}")
+        profile_name = profiles[int(input("Choose profile number: ")) - 1]
+
+    profile = cfg["profiles"][profile_name]
+
+    # pick action
+    actions = ["push", "pull", "sync", "sync_safe", "full_sync", "preview"]
+    if has_fzf:
+        action = pick_with_fzf(actions, prompt="Action: ")
+    else:
+        print("Actions:")
+        for i, a in enumerate(actions):
+            print(f"{i+1}) {a}")
+        action = actions[int(input("Choose action number: ")) - 1]
+
+    # pick target
+    targets = list(cfg["targets"].keys())
+    if has_fzf:
+        target = pick_with_fzf(targets, prompt="Target: ")
+    else:
+        print("Targets:")
+        for i, t in enumerate(targets):
+            print(f"{i+1}) {t}")
+        target = targets[int(input("Choose target number: ")) - 1]
+    remote_subpath = cfg["targets"][target]
+
+    # push: either preset or files
+    if action == "push":
+        # allow choosing a push preset
+        push_presets = list(cfg.get("push_presets", {}).keys())
+        chosen_preset = None
+        if push_presets and has_fzf:
+            chosen_preset = pick_with_fzf(push_presets + ["(type paths)"], prompt="Preset or type paths: ")
+        elif push_presets:
+            print("Push presets:")
+            for i, p in enumerate(push_presets):
+                print(f"{i+1}) {p}")
+            print(f"{len(push_presets)+1}) type paths")
+            idx = int(input("Choose: ")) - 1
+            if idx < len(push_presets):
+                chosen_preset = push_presets[idx]
+            else:
+                chosen_preset = "(type paths)"
+        if chosen_preset and chosen_preset != "(type paths)":
+            local_path = cfg["push_presets"][chosen_preset]
+            print(f"[info] using preset local path: {local_path}")
+            action_push(profile, cfg, remote_subpath, local_path)
+        else:
+            paths = input("Enter local file(s) and/or folders separated by spaces: ")
+            files = shlex.split(paths)
+            action_push(profile, cfg, remote_subpath, files)
+
+    elif action == "pull":
+        # allow choosing pull preset or listing remote and choosing file/folder
+        pull_presets = list(cfg.get("pull_presets", {}).keys())
+        if pull_presets and has_fzf:
+            pick = pick_with_fzf(pull_presets + ["(browse remote)"], prompt="Preset or browse remote: ")
+        elif pull_presets:
+            print("Pull presets:")
+            for i, p in enumerate(pull_presets):
+                print(f"{i+1}) {p}")
+            print(f"{len(pull_presets)+1}) browse remote")
+            idx = int(input("Choose: ")) - 1
+            pick = pull_presets[idx] if idx < len(pull_presets) else "(browse remote)"
+        else:
+            pick = "(browse remote)"
+
+        if pick and pick != "(browse remote)":
+            remote_choice = cfg["pull_presets"][pick]
+        else:
+            # list and pick remote paths
+            remote_list = list_remote_paths(profile, remote_full_path(profile, remote_subpath))
+            if not remote_list:
+                print("[warn] remote directory seems empty.")
+                return
+            if has_fzf:
+                remote_choice = pick_with_fzf(remote_list, prompt="Remote file/folder: ")
+            else:
+                for i, r in enumerate(remote_list):
+                    print(f"{i+1}) {r}")
+                remote_choice = remote_list[int(input("Choose: ")) - 1]
+        local_dest = input("Local destination directory or file: ").strip() or "."
+        action_pull(profile, cfg, remote_choice, local_dest)
+
+    elif action in ("sync", "sync_safe", "full_sync"):
+        local_dir = input("Local directory to sync: ").strip()
+        if not local_dir:
+            print("No local directory provided")
+            return
+        full = (action == "full_sync")
+        if action == "sync_safe":
+            full = False
+        action_sync_bi(profile, cfg, remote_subpath, local_dir, full=full)
+
+    elif action == "preview":
+        # choose push or sync preview
+        preview_action = input("Preview push or sync? [push/sync]: ").strip() or "push"
+        if preview_action == "push":
+            local_path = input("Local path (file or dir) to preview push: ").strip()
+            print(preview_dry_run(profile, local_path, remote_subpath, cfg, delete=False))
+        elif preview_action == "sync":
+            local_dir = input("Local directory to preview sync: ").strip()
+            print("[preview push pass]")
+            print(preview_dry_run(profile, local_dir, remote_subpath, cfg, delete=False))
+            print("[preview pull pass]")
+            # remote->local preview: run dry-run with inverted src/dst by building appropriate command
+            ssh_user_host = f"{profile.get('user','')}@{profile['host']}" if profile.get("user") else profile['host']
+            remote_src = f"{ssh_user_host}:{remote_full_path(profile, remote_subpath)}/"
+            cmd = rsync_cmd(remote_src, str(local_dir).rstrip("/") + "/", cfg, delete=False, dry_run=True)
+            print("[preview] " + " ".join(shlex.quote(x) for x in cmd))
+            proc = run(cmd, check=False, capture=True)
+            print(proc.stdout)
+    else:
+        print(f"[error] unknown action: {action}")
+
+
+# ---------------------------
+# CLI entrypoint
+# ---------------------------
+def build_argparser():
+    p = argparse.ArgumentParser(description="syncer - NAS rsync wrapper")
+    p.add_argument("--config", "-c", help="Optional YAML config file (overrides defaults)")
+    sub = p.add_subparsers(dest="cmd", help="action")
+
+    # push
+    sp = sub.add_parser("push", help="Push local files/dirs to remote target")
+    sp.add_argument("--profile", required=True, help="Profile name")
+    sp.add_argument("--target", required=True, help="Target name (from config targets)")
+    sp.add_argument("--files", nargs="+", help="Local file(s) or directories to upload")
+    sp.add_argument("--preset", help="Use a push preset name instead of files")
+    sp.add_argument("--compress", action="store_true", help="Enable rsync compression (-z)")
+    sp.add_argument("--preview", action="store_true", help="Dry-run preview only")
+
+    # pull
+    sp = sub.add_parser("pull", help="Pull a remote file/folder to local destination")
+    sp.add_argument("--profile", required=True)
+    sp.add_argument("--target", required=True)
+    sp.add_argument("--remote-path", help="Remote path relative to target (if omitted, browser used if fzf present)")
+    sp.add_argument("--local", required=True, help="Local destination (dir or file)")
+    sp.add_argument("--compress", action="store_true")
+    sp.add_argument("--preview", action="store_true")
+
+    # sync (bi-directional)
+    sp = sub.add_parser("sync", help="Bi-directional sync (safe by default)")
+    sp.add_argument("--profile", required=True)
+    sp.add_argument("--target", required=True)
+    sp.add_argument("--local", required=True)
+    sp.add_argument("--full", action="store_true", help="Full mirror (enable deletions)")
+    sp.add_argument("--compress", action="store_true")
+    sp.add_argument("--preview", action="store_true")
+
+    # preview (explicit)
+    sp = sub.add_parser("preview", help="Show rsync dry-run for chosen operation")
+    sp.add_argument("mode", choices=["push", "sync"], help="What to preview")
+    sp.add_argument("--profile", required=True)
+    sp.add_argument("--target", required=True)
+    sp.add_argument("--local", required=True, help="Local path to preview from")
+    sp.add_argument("--full", action="store_true", help="Preview full (delete) sync")
+    sp.add_argument("--compress", action="store_true")
+
+    # interactive
+    sub.add_parser("interactive", help="Interactive mode (uses fzf if available)")
+
+    return p
+
+
+def main():
+    parser = build_argparser()
+    args = parser.parse_args()
+
+    cfg = load_config(getattr(args, "config", None))
+
+    if args.cmd is None:
+        print("No command given; starting interactive mode.")
+        interactive_mode(cfg)
+        return
+
+    # Validate profile
+    if args.cmd != "interactive" and args.cmd != "preview":
+        profile_name = getattr(args, "profile", None)
+        if profile_name not in cfg["profiles"]:
+            print(f"[error] profile '{profile_name}' not configured. Available: {list(cfg['profiles'].keys())}")
+            sys.exit(2)
+        profile = cfg["profiles"][profile_name]
+    else:
+        profile = None
+
+    # Handle commands
+    if args.cmd == "push":
+        if args.preset:
+            if args.preset not in cfg.get("push_presets", {}):
+                print(f"[error] push preset {args.preset} not found.")
+                sys.exit(1)
+            local_path = cfg["push_presets"][args.preset]
+            print(f"[info] using push preset {args.preset} -> {local_path}")
+            if args.preview:
+                out = preview_dry_run(profile, local_path, cfg["targets"][args.target], cfg, delete=False, compress=args.compress or None)
+                print(out)
+            else:
+                action_push(profile, cfg, cfg["targets"][args.target], local_path, compress=args.compress or None, dry_run=False)
+        else:
+            if not args.files:
+                print("[error] specify --files or --preset")
+                sys.exit(1)
+            if args.preview:
+                print(preview_dry_run(profile, args.files[0], cfg["targets"][args.target], cfg, delete=False, compress=args.compress or None))
+            else:
+                action_push(profile, cfg, cfg["targets"][args.target], args.files, compress=args.compress or None, dry_run=False)
+
+    elif args.cmd == "pull":
+        remote_path = args.remote_path
+        if not remote_path:
+            # try interactive remote picking if fzf exists
+            print("[info] no remote-path provided; attempting to list remote paths.")
+            remote_list = list_remote_paths(profile, remote_full_path(profile, cfg["targets"][args.target]))
+            if not remote_list:
+                print("[warn] remote target appears empty.")
+                sys.exit(1)
+            choice = None
+            if shutil.which("fzf"):
+                choice = pick_with_fzf(remote_list, prompt="Remote file/folder: ")
+            else:
+                for i, r in enumerate(remote_list):
+                    print(f"{i+1}) {r}")
+                idx = int(input("Choose number: ")) - 1
+                choice = remote_list[idx]
+            remote_path = choice
+        if args.preview:
+            cmd = rsync_cmd(f"{profile.get('user','')}@{profile['host']}:{remote_path}", args.local, cfg, delete=False, dry_run=True, compress=args.compress or None)
+            print("[preview] " + " ".join(shlex.quote(x) for x in cmd))
+            proc = run(cmd, check=False, capture=True)
+            print(proc.stdout)
+        else:
+            action_pull(profile, cfg, remote_path, args.local, compress=args.compress or None, dry_run=False)
+
+    elif args.cmd == "sync":
+        target_subpath = cfg["targets"][args.target]
+        action_sync_bi(profile, cfg, target_subpath, args.local, full=args.full, compress=args.compress or None, dry_run=args.preview)
+
+    elif args.cmd == "preview":
+        target_subpath = cfg["targets"][args.target]
+        if args.mode == "push":
+            out = preview_dry_run(cfg["profiles"][args.profile], args.local, target_subpath, cfg, delete=args.full, compress=args.compress or None)
+            print(out)
+        elif args.mode == "sync":
+            print("[preview] local -> remote")
+            print(preview_dry_run(cfg["profiles"][args.profile], args.local, target_subpath, cfg, delete=args.full, compress=args.compress or None))
+            print("[preview] remote -> local")
+            ssh_user_host = f"{cfg['profiles'][args.profile].get('user','')}@{cfg['profiles'][args.profile]['host']}"
+            cmd = rsync_cmd(f"{ssh_user_host}:{remote_full_path(cfg['profiles'][args.profile], target_subpath)}/",
+                            str(args.local).rstrip("/") + "/", cfg, delete=args.full, dry_run=True, compress=args.compress or None)
+            print("[preview] " + " ".join(shlex.quote(x) for x in cmd))
+            proc = run(cmd, check=False, capture=True)
+            print(proc.stdout)
+
+    elif args.cmd == "interactive":
+        interactive_mode(cfg)
+    else:
+        parser.print_help()
+
+
+if __name__ == "__main__":
+    main()
+
