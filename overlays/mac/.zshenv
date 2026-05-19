@@ -20,6 +20,7 @@ export HOMEBREW_NO_ENV_HINTS=1
 
 # == PATH == #
 export PATH=$PATH:~/.local/share/nvim/mason/bin # Neovim Mason
+export PATH=$PATH:~/.local/bin/
 
 # == Sources == #
 source "$HOME/.cargo/env"

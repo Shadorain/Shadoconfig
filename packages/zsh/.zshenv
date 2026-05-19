@@ -6,7 +6,7 @@
 export EDITOR="nvim"
 export VISUAL=$EDITOR
 export TERMINAL="kitty"
-export TERM=$TERMINAL
+# export TERM=$TERMINAL
 # export BROWSER="zen"
 export VIDEO="mpv"
 
