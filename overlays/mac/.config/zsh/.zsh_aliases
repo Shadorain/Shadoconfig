@@ -22,15 +22,15 @@ alias -s json="jless"
 
 # == System == #
 ## Processes
-alias psa="ps auxfw | grep -i" # Grep processes
+alias psa="ps auxw | grep -i" # Grep processes
 alias pst="pstree -p" # Process tree
 psk() { # Process killer
     killall $1 2>/dev/null
-    kill -9 $(ps auxfw | grep -i $1 | awk '{print $2}' | tr '\n' ' ')
+    kill -9 $(ps auxw | grep -i $1 | awk '{print $2}' | tr '\n' ' ')
 }
 spsk() { # Sudo process killer
     sudo killall $1 2>/dev/null
-    sudo kill -9 $(ps auxfw | grep -i $1 | awk '{print $2}' | tr '\n' ' ')
+    sudo kill -9 $(ps auxw | grep -i $1 | awk '{print $2}' | tr '\n' ' ')
 }
 
 # == Directory == #

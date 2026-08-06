@@ -1,13 +1,26 @@
+# == Styling ==
 theme = Shadotheme
 
-# Comments start with a `#` and are only valid on their own line.
-# Blank lines are ignored!
-
-# keybind = ctrl+z=close_surface
-keybind = ctrl+d=new_split:right
-
-# Empty values reset the configuration to the default value
 font-family =
+font-size = 11
 
 background-blur = true
+background-blur-radius = 20
 background-opacity = 0.90
+
+window-padding-x = 5
+window-padding-y = 5
+
+confirm-close-surface = false
+quit-after-last-window-closed = true
+
+
+# == Miscellaneous ==
+macos-titlebar-style = hidden
+bell-features = no-system
+focus-follows-mouse = true
+
+
+# == Keybinds ==
+# keybind = ctrl+z=close_surface
+keybind = ctrl+d=new_split:right
